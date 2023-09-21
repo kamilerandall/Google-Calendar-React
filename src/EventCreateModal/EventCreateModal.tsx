@@ -8,9 +8,15 @@ function CreateEventModal({
 	setEventDetails,
 	setSelectedSpotId,
 	setIsModalVisible,
+	eventId,
+	setSavedEvents,
+	savedEvents,
 }: {
 	isModalVisible: boolean;
 	eventDetails: EventDetails;
+	savedEvents: SavedEvent[];
+	setSavedEvents: React.Dispatch<React.SetStateAction<SavedEvent[]>>;
+	eventId: React.MutableRefObject<number>;
 	setEventDetails: React.Dispatch<
 		React.SetStateAction<{
 			eventDate: string;
@@ -33,14 +39,16 @@ function CreateEventModal({
 	}
 
 	function saveEvent(e: React.FormEvent) {
+		eventId.current++;
 		e.preventDefault();
 		const newEvent: SavedEvent = {
-			id: Math.random().toString(),
+			id: eventId.current.toString(),
 			location: `${eventDetails.eventDate} ${eventDetails.eventStartTime}`,
 			eventDetails: eventDetails,
 		};
 		saveEvents(newEvent);
 		setIsModalVisible(!isModalVisible);
+		setSavedEvents([...savedEvents, newEvent]);
 	}
 
 	return (

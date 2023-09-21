@@ -1,9 +1,9 @@
-import { SyntheticEvent, useEffect, useState } from "react";
+import { SyntheticEvent,  } from "react";
 import { DateInfo, EventDetails, SavedEvent } from "../../types";
 import getFormatedDateForId from "../../Utils/dateFormationForId";
 import addTitleToCreatedEvent from "../../Utils/addTitleToEventSlot";
 import changeEventHeight from "../../Utils/changeEventSlotHeight";
-import { getEvents } from "../../services/events";
+
 
 function WeekViewGrid({
 	dateInfo,
@@ -11,24 +11,15 @@ function WeekViewGrid({
 	eventDetails,
 	isModalVisible,
 	selectedSpotId,
+	savedEvents,
 }: {
 	dateInfo: DateInfo;
 	onClick(e: SyntheticEvent): void;
 	eventDetails: EventDetails;
 	isModalVisible: boolean;
 	selectedSpotId: string;
+	savedEvents: SavedEvent[];
 }) {
-	const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
-
-	useEffect(() => {
-		async function retrieveEvents() {
-			const retrievedEvents = await getEvents();
-
-			setSavedEvents(retrievedEvents);
-		}
-		retrieveEvents();
-	}, []);
-	console.log(savedEvents);
 
 	const grid = [];
 
@@ -52,22 +43,20 @@ function WeekViewGrid({
 							{addTitleToCreatedEvent(eventDetails)}
 						</div>
 					)}
-					{savedEvents.map(
-						(event) => {        
-							return (
-								event.location === id && (
-									<div
-										className="created-event"
-										key={`${event.location} event`}
-										id={`${event.location} event`}
-										style={{ height: `${changeEventHeight(event.eventDetails)}` }}
-									>
-										{addTitleToCreatedEvent(event.eventDetails)}
-									</div>
-								)
-							);
-						}
-					)}
+					{savedEvents.map((event) => {
+						return (
+							event.location === id && (
+								<div
+									className="created-event"
+									key={`${event.location} event`}
+									id={`${event.location} event`}
+									style={{ height: `${changeEventHeight(event.eventDetails)}` }}
+								>
+									{addTitleToCreatedEvent(event.eventDetails)}
+								</div>
+							)
+						);
+					})}
 				</div>
 			);
 		}
