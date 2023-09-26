@@ -7,6 +7,6 @@ export default function addThirtyMinutes(eventStart: string) {
 	return isLessThan60 ? addToMinutes : addToHoursAndMinutes;
 }
 
-function getFormatedHour(hour: number) {
+export function getFormatedHour(hour: number) {
 	return hour < 10 ? `0${hour}:00` : `${hour}:00`;
 }
