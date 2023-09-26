@@ -3,15 +3,17 @@ import CreateEventModal from "../EventCreateModal";
 import CalHours from "./components/CalHours";
 import WeekViewHeader from "./components/WeekViewHeader";
 import WeekViewGrid from "./components/WeekViewGrid";
-import { DateInfo, SavedEvent } from "../types";
+import { DateInfo, EventDetails, SavedEvent } from "../types";
 import addThirtyMinutes from "../Utils/addThirtyMinutesToTime";
 import { getEvents } from "../services/events";
 
 function MainCal({ dateInfo }: { dateInfo: DateInfo }) {
 	const [savedEvents, setSavedEvents] = useState<SavedEvent[]>([]);
+	const [isEventNew, setIsEventNew] = useState(true);
 	const [isModalVisible, setIsModalVisible] = useState(false);
 	const [selectedSpotId, setSelectedSpotId] = useState("");
-	const [eventDetails, setEventDetails] = useState({
+	const [selectedEvent, setSelectedEvent] = useState<SavedEvent>();
+	const [eventDetails, setEventDetails] = useState<EventDetails>({
 		eventDate: "",
 		eventStartTime: "",
 		eventEndTime: "",
@@ -36,6 +38,16 @@ function MainCal({ dateInfo }: { dateInfo: DateInfo }) {
 		} else {
 			setSelectedSpotId(e.target.id);
 		}
+		if (e.target.id.includes("event")) {
+			setIsEventNew(false);
+			const currEvent = savedEvents.find((event) => `${event.location} event` === e.target.id);
+			setSelectedEvent(currEvent);
+			if (currEvent) {
+				setEventDetails(currEvent.eventDetails);
+			}
+		} else {
+			setIsEventNew(true);
+		}
 	}
 
 	return (
@@ -53,6 +65,9 @@ function MainCal({ dateInfo }: { dateInfo: DateInfo }) {
 				/>
 			</div>
 			<CreateEventModal
+				setSelectedEvent={setSelectedEvent}
+				selectedEvent={selectedEvent}
+				isEventNew={isEventNew}
 				savedEvents={savedEvents}
 				setSavedEvents={setSavedEvents}
 				eventId={eventId}

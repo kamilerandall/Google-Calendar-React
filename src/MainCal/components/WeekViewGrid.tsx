@@ -1,9 +1,8 @@
-import { SyntheticEvent,  } from "react";
+import { SyntheticEvent } from "react";
 import { DateInfo, EventDetails, SavedEvent } from "../../types";
 import getFormatedDateForId from "../../Utils/dateFormationForId";
 import addTitleToCreatedEvent from "../../Utils/addTitleToEventSlot";
 import changeEventHeight from "../../Utils/changeEventSlotHeight";
-
 
 function WeekViewGrid({
 	dateInfo,
@@ -20,7 +19,6 @@ function WeekViewGrid({
 	selectedSpotId: string;
 	savedEvents: SavedEvent[];
 }) {
-
 	const grid = [];
 
 	for (let hour = 0; hour < 24; hour++) {

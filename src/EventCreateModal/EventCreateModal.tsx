@@ -1,5 +1,5 @@
 import checkEventTimeValidity from "../Utils/checkTimeValidity";
-import { saveEvents } from "../services/events";
+import { changeExistingEvent, deleteEventFromDB, saveEvents } from "../services/events";
 import { EventDetails, SavedEvent } from "../types";
 
 function CreateEventModal({
@@ -11,8 +11,12 @@ function CreateEventModal({
 	eventId,
 	setSavedEvents,
 	savedEvents,
+	isEventNew,
+	selectedEvent,
+	setSelectedEvent,
 }: {
 	isModalVisible: boolean;
+	isEventNew: boolean;
 	eventDetails: EventDetails;
 	savedEvents: SavedEvent[];
 	setSavedEvents: React.Dispatch<React.SetStateAction<SavedEvent[]>>;
@@ -27,28 +31,74 @@ function CreateEventModal({
 	>;
 	setIsModalVisible: (b: boolean) => void;
 	setSelectedSpotId: React.Dispatch<React.SetStateAction<string>>;
+	selectedEvent: SavedEvent | undefined;
+	setSelectedEvent: React.Dispatch<React.SetStateAction<SavedEvent | undefined>>;
 }) {
 	function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
-		const currDetails = { ...eventDetails, [e.target.name]: e.target.value };
-		setEventDetails({ ...eventDetails, [e.target.name]: e.target.value });
-		setSelectedSpotId(`${currDetails.eventDate} ${currDetails.eventStartTime}`);
+		if (isEventNew) {
+			const currDetails = { ...eventDetails, [e.target.name]: e.target.value };
+			setEventDetails({ ...eventDetails, [e.target.name]: e.target.value });
+			setSelectedSpotId(`${currDetails.eventDate} ${currDetails.eventStartTime}`);
+		} else {
+			if (selectedEvent) {
+				const location =
+					e.target.name === "eventDate"
+						? `${e.target.value} ${selectedEvent.eventDetails.eventStartTime}`
+						: e.target.name === "eventStartTime"
+						? `${selectedEvent.eventDetails.eventDate} ${e.target.value}`
+						: selectedEvent.location;
+
+				const updatedEvent = {
+					...selectedEvent,
+					eventDetails: { ...selectedEvent.eventDetails, [e.target.name]: e.target.value },
+					location,
+				};
+
+				setSelectedEvent(updatedEvent);
+				setEventDetails(updatedEvent.eventDetails);
+				const editedEvents = savedEvents.map((event) => {
+					return event.id === selectedEvent.id ? updatedEvent : event;
+				});
+				setSavedEvents(editedEvents);
+			}
+		}
 	}
 
 	function exitModal() {
-		console.log("exit");
+		setIsModalVisible(false);
+	}
+
+	function deleteEvent() {
+		if (selectedEvent) {
+			const eventsWithoutDeleted = savedEvents.filter((event) => {
+				if (event.id !== selectedEvent.id) {
+					return event;
+				}
+			});
+			setSavedEvents(eventsWithoutDeleted);
+			setIsModalVisible(false);
+			deleteEventFromDB(selectedEvent);
+		}
 	}
 
 	function saveEvent(e: React.FormEvent) {
-		eventId.current++;
 		e.preventDefault();
-		const newEvent: SavedEvent = {
-			id: eventId.current.toString(),
-			location: `${eventDetails.eventDate} ${eventDetails.eventStartTime}`,
-			eventDetails: eventDetails,
-		};
-		saveEvents(newEvent);
+		if (isEventNew) {
+			eventId.current++;
+			const newEvent: SavedEvent = {
+				id: eventId.current.toString(),
+				location: `${eventDetails.eventDate} ${eventDetails.eventStartTime}`,
+				eventDetails: eventDetails,
+			};
+			saveEvents(newEvent);
+			setSavedEvents([...savedEvents, newEvent]);
+		} else {
+			if (selectedEvent) {
+				changeExistingEvent(selectedEvent);
+			}
+		}
+
 		setIsModalVisible(!isModalVisible);
-		setSavedEvents([...savedEvents, newEvent]);
 	}
 
 	return (
@@ -57,14 +107,19 @@ function CreateEventModal({
 			style={{ display: isModalVisible ? "block" : "none" }}
 		>
 			<div className="event-create-header">
-				<button className="delete-btn">
-					<img
-						className="delete-icon"
-						src="https://img.freepik.com/free-icon/delete_318-901546.jpg?t=st=1692185590~exp=1692186190~hmac=a429ecc8ebdd0a468312198db6e415bcbab3fdd6ef6f614f4ac6176bd4f1307f"
-						alt=""
-						width="14px"
-					/>
-				</button>
+				{!isEventNew && (
+					<button
+						onClick={deleteEvent}
+						className="delete-btn"
+					>
+						<img
+							className="delete-icon"
+							src="https://img.freepik.com/free-icon/delete_318-901546.jpg?t=st=1692185590~exp=1692186190~hmac=a429ecc8ebdd0a468312198db6e415bcbab3fdd6ef6f614f4ac6176bd4f1307f"
+							alt=""
+							width="14px"
+						/>
+					</button>
+				)}
 				<button
 					onClick={exitModal}
 					className="exit-event-modal"
